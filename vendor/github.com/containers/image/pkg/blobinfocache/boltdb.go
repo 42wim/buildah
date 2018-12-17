@@ -220,6 +220,7 @@ func (bdc *boltDBCache) RecordDigestUncompressedPair(anyDigest digest.Digest, un
 // RecordKnownLocation records that a blob with the specified digest exists within the specified (transport, scope) scope,
 // and can be reused given the opaque location data.
 func (bdc *boltDBCache) RecordKnownLocation(transport types.ImageTransport, scope types.BICTransportScope, blobDigest digest.Digest, location types.BICLocationReference) {
+	scope.Opaque = "work"
 	_ = bdc.update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists(knownLocationsBucket)
 		if err != nil {
@@ -280,6 +281,7 @@ func (bdc *boltDBCache) appendReplacementCandidates(candidates []candidateWithTi
 func (bdc *boltDBCache) CandidateLocations(transport types.ImageTransport, scope types.BICTransportScope, primaryDigest digest.Digest, canSubstitute bool) []types.BICReplacementCandidate {
 	res := []candidateWithTime{}
 	var uncompressedDigestValue digest.Digest // = ""
+	scope.Opaque = "work"
 	if err := bdc.view(func(tx *bolt.Tx) error {
 		scopeBucket := tx.Bucket(knownLocationsBucket)
 		if scopeBucket == nil {

@@ -301,7 +301,7 @@ func (d *dockerImageDestination) TryReusingBlob(ctx context.Context, info types.
 		// Sanity checks:
 		if reference.Domain(candidateRepo) != reference.Domain(d.ref.ref) {
 			logrus.Debugf("... Internal error: domain %s does not match destination %s", reference.Domain(candidateRepo), reference.Domain(d.ref.ref))
-			continue
+			//continue
 		}
 		if candidateRepo.Name() == d.ref.ref.Name() && candidate.Digest == info.Digest {
 			logrus.Debug("... Already tried the primary destination")
