@@ -30,8 +30,9 @@ import (
 )
 
 type dockerImageDestination struct {
-	ref dockerReference
-	c   *dockerClient
+	ref                 dockerReference
+	c                   *dockerClient
+	checkBlobEverywhere bool
 	// State
 	manifestDigest digest.Digest // or "" if not yet known.
 }
@@ -43,8 +44,9 @@ func newImageDestination(sys *types.SystemContext, ref dockerReference) (types.I
 		return nil, err
 	}
 	return &dockerImageDestination{
-		ref: ref,
-		c:   c,
+		ref:                 ref,
+		c:                   c,
+		checkBlobEverywhere: sys.CheckBlobEverywhere,
 	}, nil
 }
 
@@ -205,7 +207,7 @@ func (d *dockerImageDestination) PutBlob(ctx context.Context, stream io.Reader, 
 	}
 
 	logrus.Debugf("Upload of layer %s complete", computedDigest)
-	cache.RecordKnownLocation(d.ref.Transport(), bicTransportScope(d.ref), computedDigest, newBICLocationReference(d.ref))
+	cache.RecordKnownLocation(d.ref.Transport(), bicTransportScope(d.ref, d.checkBlobEverywhere), computedDigest, newBICLocationReference(d.ref))
 	return types.BlobInfo{Digest: computedDigest, Size: sizeCounter.size}, nil
 }
 
@@ -301,13 +303,13 @@ func (d *dockerImageDestination) TryReusingBlob(ctx context.Context, info types.
 		return false, types.BlobInfo{}, err
 	}
 	if exists {
-		cache.RecordKnownLocation(d.ref.Transport(), bicTransportScope(d.ref), info.Digest, newBICLocationReference(d.ref))
+		cache.RecordKnownLocation(d.ref.Transport(), bicTransportScope(d.ref, d.checkBlobEverywhere), info.Digest, newBICLocationReference(d.ref))
 		return true, types.BlobInfo{Digest: info.Digest, MediaType: info.MediaType, Size: size}, nil
 	}
 
 	// Then try reusing blobs from other locations.
 	bic := blobinfocache.FromBlobInfoCache(cache)
-	candidates := bic.CandidateLocations2(d.ref.Transport(), bicTransportScope(d.ref), info.Digest, canSubstitute)
+	candidates := bic.CandidateLocations2(d.ref.Transport(), bicTransportScope(d.ref, d.checkBlobEverywhere), info.Digest, canSubstitute)
 	for _, candidate := range candidates {
 		candidateRepo, err := parseBICLocationReference(candidate.Location)
 		if err != nil {
@@ -322,10 +324,14 @@ func (d *dockerImageDestination) TryReusingBlob(ctx context.Context, info types.
 
 		// Sanity checks:
 		if reference.Domain(candidateRepo) != reference.Domain(d.ref.ref) {
-			logrus.Debugf("... Internal error: domain %s does not match destination %s", reference.Domain(candidateRepo), reference.Domain(d.ref.ref))
-			continue
+			if d.checkBlobEverywhere {
+				logrus.Debugf("... Ignoring domain %s does not match destination %s. checkBlobEverywhere enabled", reference.Domain(candidateRepo), reference.Domain(d.ref.ref))
+			} else {
+				logrus.Debugf("... Internal error: domain %s does not match destination %s", reference.Domain(candidateRepo), reference.Domain(d.ref.ref))
+				continue
+			}
 		}
-		if candidateRepo.Name() == d.ref.ref.Name() && candidate.Digest == info.Digest {
+		if candidateRepo.Name() == d.ref.ref.Name() && candidate.Digest == info.Digest && !d.checkBlobEverywhere {
 			logrus.Debug("... Already tried the primary destination")
 			continue
 		}
@@ -354,14 +360,14 @@ func (d *dockerImageDestination) TryReusingBlob(ctx context.Context, info types.
 			// FIXME? Should we drop the blob from cache here (and elsewhere?)?
 			continue // logrus.Debug() already happened in blobExists
 		}
-		if candidateRepo.Name() != d.ref.ref.Name() {
+		if candidateRepo.Name() != d.ref.ref.Name() && !d.checkBlobEverywhere {
 			if err := d.mountBlob(ctx, candidateRepo, candidate.Digest, extraScope); err != nil {
 				logrus.Debugf("... Mount failed: %v", err)
 				continue
 			}
 		}
 
-		bic.RecordKnownLocation(d.ref.Transport(), bicTransportScope(d.ref), candidate.Digest, newBICLocationReference(d.ref))
+		bic.RecordKnownLocation(d.ref.Transport(), bicTransportScope(d.ref, d.checkBlobEverywhere), candidate.Digest, newBICLocationReference(d.ref))
 
 		compressionOperation, compressionAlgorithm, err := blobinfocache.OperationAndAlgorithmForCompressor(candidate.CompressorName)
 		if err != nil {
