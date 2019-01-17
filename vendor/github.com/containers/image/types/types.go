@@ -510,6 +510,9 @@ type SystemContext struct {
 	// === dir.Transport overrides ===
 	// DirForceCompress compresses the image layers if set to true
 	DirForceCompress bool
+
+	// Check blobs across registries
+	CheckBlobEverywhere bool
 }
 
 // ProgressProperties is used to pass information from the copy code to a monitor which
