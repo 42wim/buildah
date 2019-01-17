@@ -24,9 +24,10 @@ import (
 )
 
 type dockerImageSource struct {
-	logicalRef  dockerReference // The reference the user requested.
-	physicalRef dockerReference // The actual reference we are accessing (possibly a mirror)
-	c           *dockerClient
+	logicalRef          dockerReference // The reference the user requested.
+	physicalRef         dockerReference // The actual reference we are accessing (possibly a mirror)
+	c                   *dockerClient
+	checkBlobEverywhere bool
 	// State
 	cachedManifest         []byte // nil if not loaded yet
 	cachedManifestMIMEType string // Only valid if cachedManifest != nil
@@ -119,9 +120,10 @@ func newImageSourceAttempt(ctx context.Context, sys *types.SystemContext, logica
 	client.tlsClientConfig.InsecureSkipVerify = pullSource.Endpoint.Insecure
 
 	s := &dockerImageSource{
-		logicalRef:  logicalRef,
-		physicalRef: physicalRef,
-		c:           client,
+		logicalRef:          logicalRef,
+		physicalRef:         physicalRef,
+		c:                   client,
+		checkBlobEverywhere: sys.CheckBlobEverywhere,
 	}
 
 	if err := s.ensureManifestIsLoaded(ctx); err != nil {
@@ -282,7 +284,7 @@ func (s *dockerImageSource) GetBlob(ctx context.Context, info types.BlobInfo, ca
 	if err := httpResponseToError(res, "Error fetching blob"); err != nil {
 		return nil, 0, err
 	}
-	cache.RecordKnownLocation(s.physicalRef.Transport(), bicTransportScope(s.physicalRef), info.Digest, newBICLocationReference(s.physicalRef))
+	cache.RecordKnownLocation(s.physicalRef.Transport(), bicTransportScope(s.physicalRef, s.checkBlobEverywhere), info.Digest, newBICLocationReference(s.physicalRef))
 	return res.Body, getBlobSize(res), nil
 }
 
