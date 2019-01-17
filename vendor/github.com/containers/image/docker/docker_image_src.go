@@ -21,8 +21,9 @@ import (
 )
 
 type dockerImageSource struct {
-	ref dockerReference
-	c   *dockerClient
+	ref                 dockerReference
+	c                   *dockerClient
+	checkBlobEverywhere bool
 	// State
 	cachedManifest         []byte // nil if not loaded yet
 	cachedManifestMIMEType string // Only valid if cachedManifest != nil
@@ -36,8 +37,9 @@ func newImageSource(sys *types.SystemContext, ref dockerReference) (*dockerImage
 		return nil, err
 	}
 	return &dockerImageSource{
-		ref: ref,
-		c:   c,
+		ref:                 ref,
+		c:                   c,
+		checkBlobEverywhere: sys.CheckBlobEverywhere,
 	}, nil
 }
 
@@ -184,7 +186,7 @@ func (s *dockerImageSource) GetBlob(ctx context.Context, info types.BlobInfo, ca
 		// print url also
 		return nil, 0, errors.Errorf("Invalid status code returned when fetching blob %d (%s)", res.StatusCode, http.StatusText(res.StatusCode))
 	}
-	cache.RecordKnownLocation(s.ref.Transport(), bicTransportScope(s.ref), info.Digest, newBICLocationReference(s.ref))
+	cache.RecordKnownLocation(s.ref.Transport(), bicTransportScope(s.ref, s.checkBlobEverywhere), info.Digest, newBICLocationReference(s.ref))
 	return res.Body, getBlobSize(res), nil
 }
 

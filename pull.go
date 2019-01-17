@@ -150,6 +150,7 @@ func localImageNameForReference(ctx context.Context, store storage.Store, srcRef
 func Pull(ctx context.Context, imageName string, options PullOptions) error {
 	spec := imageName
 	systemContext := getSystemContext(options.SystemContext, options.SignaturePolicyPath)
+	systemContext.CheckBlobEverywhere = true
 	srcRef, err := alltransports.ParseImageName(spec)
 	if err != nil {
 		if options.Transport == "" {
