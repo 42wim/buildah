@@ -372,6 +372,8 @@ func (b *Builder) Commit(ctx context.Context, dest types.ImageReference, options
 		systemContext.OSChoice = b.OS()
 	}
 
+	systemContext.CheckBlobEverywhere = true
+
 	var manifestBytes []byte
 	if manifestBytes, err = retryCopyImage(ctx, policyContext, maybeCachedDest, maybeCachedSrc, dest, getCopyOptions(b.store, options.ReportWriter, nil, systemContext, "", false, options.SignBy, options.OciEncryptLayers, options.OciEncryptConfig, nil), options.MaxRetries, options.RetryDelay); err != nil {
 		return imgID, nil, "", errors.Wrapf(err, "error copying layers and metadata for container %q", b.ContainerID)

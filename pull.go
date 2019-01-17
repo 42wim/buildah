@@ -161,6 +161,7 @@ func localImageNameForReference(ctx context.Context, store storage.Store, srcRef
 // ID of the local image or an error.
 func Pull(ctx context.Context, imageName string, options PullOptions) (imageID string, err error) {
 	systemContext := getSystemContext(options.Store, options.SystemContext, options.SignaturePolicyPath)
+	systemContext.CheckBlobEverywhere = true
 
 	boptions := BuilderOptions{
 		FromImage:           imageName,
