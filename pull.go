@@ -155,6 +155,7 @@ func localImageNameForReference(ctx context.Context, store storage.Store, srcRef
 // Pull copies the contents of the image from somewhere else to local storage.
 func Pull(ctx context.Context, imageName string, options PullOptions) error {
 	systemContext := getSystemContext(options.SystemContext, options.SignaturePolicyPath)
+	systemContext.CheckBlobEverywhere = true
 
 	boptions := BuilderOptions{
 		FromImage:           imageName,
