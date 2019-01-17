@@ -22,8 +22,9 @@ import (
 )
 
 type dockerImageSource struct {
-	ref dockerReference
-	c   *dockerClient
+	ref                 dockerReference
+	c                   *dockerClient
+	checkBlobEverywhere bool
 	// State
 	cachedManifest         []byte // nil if not loaded yet
 	cachedManifestMIMEType string // Only valid if cachedManifest != nil
@@ -80,8 +81,9 @@ func newImageSource(ctx context.Context, sys *types.SystemContext, ref dockerRef
 		client.tlsClientConfig.InsecureSkipVerify = pullSource.Endpoint.Insecure
 
 		testImageSource := &dockerImageSource{
-			ref: dockerRef,
-			c:   client,
+			ref:                 dockerRef,
+			c:                   client,
+			checkBlobEverywhere: sys.CheckBlobEverywhere,
 		}
 
 		manifestLoadErr = testImageSource.ensureManifestIsLoaded(ctx)
@@ -242,7 +244,7 @@ func (s *dockerImageSource) GetBlob(ctx context.Context, info types.BlobInfo, ca
 	if err := httpResponseToError(res); err != nil {
 		return nil, 0, err
 	}
-	cache.RecordKnownLocation(s.ref.Transport(), bicTransportScope(s.ref), info.Digest, newBICLocationReference(s.ref))
+	cache.RecordKnownLocation(s.ref.Transport(), bicTransportScope(s.ref, s.checkBlobEverywhere), info.Digest, newBICLocationReference(s.ref))
 	return res.Body, getBlobSize(res), nil
 }
 
