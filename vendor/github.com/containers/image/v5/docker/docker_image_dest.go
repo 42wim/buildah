@@ -338,7 +338,7 @@ func (d *dockerImageDestination) TryReusingBlob(ctx context.Context, info types.
 			// FIXME? Should we drop the blob from cache here (and elsewhere?)?
 			continue // logrus.Debug() already happened in blobExists
 		}
-		if candidateRepo.Name() != d.ref.ref.Name() && !d.checkBlobEverywhere {
+		if candidateRepo.Name() != d.ref.ref.Name() { // && !d.checkBlobEverywhere {
 			if err := d.mountBlob(ctx, candidateRepo, candidate.Digest, extraScope); err != nil {
 				logrus.Debugf("... Mount failed: %v", err)
 				continue
