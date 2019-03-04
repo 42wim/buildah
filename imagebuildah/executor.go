@@ -112,6 +112,7 @@ type Executor struct {
 	stagesSemaphore                *semaphore.Weighted
 	jobs                           int
 	logRusage                      bool
+	checkBlobEverywhere            bool
 }
 
 // NewExecutor creates a new instance of the imagebuilder.Executor interface.
@@ -216,6 +217,7 @@ func NewExecutor(store storage.Store, options BuildOptions, mainNode *parser.Nod
 		terminatedStage:                make(map[string]struct{}),
 		jobs:                           jobs,
 		logRusage:                      options.LogRusage,
+		checkBlobEverywhere:            options.CheckBlobEverywhere,
 	}
 	if exec.err == nil {
 		exec.err = os.Stderr

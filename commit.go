@@ -98,6 +98,8 @@ type CommitOptions struct {
 	// integers in the slice represent 0-indexed layer indices, with support for negative
 	// indexing. i.e. 0 is the first layer, -1 is the last (top-most) layer.
 	OciEncryptLayers *[]int
+
+	CheckBlobEverywhere bool
 }
 
 // PushOptions can be used to alter how an image is copied somewhere.
@@ -151,6 +153,8 @@ type PushOptions struct {
 	// integers in the slice represent 0-indexed layer indices, with support for negative
 	// indexing. i.e. 0 is the first layer, -1 is the last (top-most) layer.
 	OciEncryptLayers *[]int
+
+	CheckBlobEverywhere bool
 }
 
 var (
@@ -351,8 +355,7 @@ func (b *Builder) Commit(ctx context.Context, dest types.ImageReference, options
 		systemContext.OSChoice = b.OS()
 	}
 
-	systemContext.CheckBlobEverywhere = true
-
+	systemContext.CheckBlobEverywhere = options.CheckBlobEverywhere
 	var manifestBytes []byte
 	if manifestBytes, err = retryCopyImage(ctx, policyContext, maybeCachedDest, maybeCachedSrc, dest, getCopyOptions(b.store, options.ReportWriter, nil, systemContext, "", false, options.SignBy, options.OciEncryptLayers, options.OciEncryptConfig, nil), options.MaxRetries, options.RetryDelay); err != nil {
 		return imgID, nil, "", errors.Wrapf(err, "error copying layers and metadata for container %q", b.ContainerID)
@@ -485,6 +488,7 @@ func Push(ctx context.Context, image string, dest types.ImageReference, options 
 	case archive.Gzip:
 		systemContext.DirForceCompress = true
 	}
+	systemContext.CheckBlobEverywhere = options.CheckBlobEverywhere
 	var manifestBytes []byte
 	if manifestBytes, err = retryCopyImage(ctx, policyContext, dest, maybeCachedSrc, dest, getCopyOptions(options.Store, options.ReportWriter, nil, systemContext, options.ManifestType, options.RemoveSignatures, options.SignBy, options.OciEncryptLayers, options.OciEncryptConfig, nil), options.MaxRetries, options.RetryDelay); err != nil {
 		return nil, "", errors.Wrapf(err, "error copying layers and metadata from %q to %q", transports.ImageName(maybeCachedSrc), transports.ImageName(dest))

@@ -65,6 +65,7 @@ type containerImageRef struct {
 	blobDirectory         string
 	preEmptyLayers        []v1.History
 	postEmptyLayers       []v1.History
+	checkBlobEverywhere   bool
 }
 
 type containerImageSource struct {
@@ -754,6 +755,7 @@ func (b *Builder) makeImageRef(options CommitOptions, exporting bool) (types.Ima
 		blobDirectory:         options.BlobDirectory,
 		preEmptyLayers:        b.PrependedEmptyLayers,
 		postEmptyLayers:       b.AppendedEmptyLayers,
+		checkBlobEverywhere:   options.CheckBlobEverywhere,
 	}
 	return ref, nil
 }
