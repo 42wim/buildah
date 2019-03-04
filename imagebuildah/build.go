@@ -184,7 +184,8 @@ type BuildOptions struct {
 	// Jobs is the number of stages to run in parallel.  If not specified it defaults to 1.
 	Jobs *int
 	// LogRusage logs resource usage for each step.
-	LogRusage bool
+	LogRusage           bool
+	CheckBlobEverywhere bool
 }
 
 // BuildDockerfiles parses a set of one or more Dockerfiles (which may be

@@ -346,6 +346,7 @@ func budCmd(c *cobra.Command, inputArgs []string, iopts budOptions) error {
 		OciDecryptConfig:        decConfig,
 		Jobs:                    &iopts.Jobs,
 		LogRusage:               iopts.LogRusage,
+		CheckBlobEverywhere:     true,
 	}
 	if c.Flag("timestamp").Changed {
 		timestamp := time.Unix(iopts.Timestamp, 0).UTC()

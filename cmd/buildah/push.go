@@ -188,6 +188,7 @@ func pushCmd(c *cobra.Command, args []string, iopts pushOptions) error {
 		RetryDelay:          pullPushRetryDelay,
 		OciEncryptConfig:    encConfig,
 		OciEncryptLayers:    encLayers,
+		CheckBlobEverywhere: true,
 	}
 	if !iopts.quiet {
 		options.ReportWriter = os.Stderr

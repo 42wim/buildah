@@ -114,6 +114,7 @@ type Executor struct {
 	logRusage                      bool
 	imageInfoLock                  sync.Mutex
 	imageInfoCache                 map[string]imageTypeAndHistoryAndDiffIDs
+	checkBlobEverywhere            bool
 }
 
 type imageTypeAndHistoryAndDiffIDs struct {
@@ -226,6 +227,7 @@ func NewExecutor(store storage.Store, options BuildOptions, mainNode *parser.Nod
 		jobs:                           jobs,
 		logRusage:                      options.LogRusage,
 		imageInfoCache:                 make(map[string]imageTypeAndHistoryAndDiffIDs),
+		checkBlobEverywhere:            options.CheckBlobEverywhere,
 	}
 	if exec.err == nil {
 		exec.err = os.Stderr
