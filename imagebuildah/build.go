@@ -155,6 +155,8 @@ type BuildOptions struct {
 	BlobDirectory string
 	// Target the targeted FROM in the Dockerfile to build
 	Target string
+
+	CheckBlobEverywhere bool
 }
 
 // BuildDockerfiles parses a set of one or more Dockerfiles (which may be
