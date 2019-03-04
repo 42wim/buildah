@@ -168,6 +168,8 @@ type BuildOptions struct {
 	BlobDirectory string
 	// Target the targeted FROM in the Dockerfile to build
 	Target string
+
+	CheckBlobEverywhere bool
 }
 
 // Executor is a buildah-based implementation of the imagebuilder.Executor
@@ -218,6 +220,7 @@ type Executor struct {
 	blobDirectory                  string
 	excludes                       []string
 	unusedArgs                     map[string]struct{}
+	checkBlobEverywhere            bool
 }
 
 // StageExecutor bundles up what we need to know when executing one stage of a
@@ -658,6 +661,7 @@ func NewExecutor(store storage.Store, options BuildOptions) (*Executor, error) {
 		containerMap:                   make(map[string]*buildah.Builder),
 		blobDirectory:                  options.BlobDirectory,
 		unusedArgs:                     make(map[string]struct{}),
+		checkBlobEverywhere:            options.CheckBlobEverywhere,
 	}
 	if exec.err == nil {
 		exec.err = os.Stderr
@@ -1441,6 +1445,7 @@ func (s *StageExecutor) commit(ctx context.Context, ib *imagebuilder.Builder, cr
 		Squash:                s.executor.squash,
 		BlobDirectory:         s.executor.blobDirectory,
 		Parent:                s.builder.FromImageID,
+		CheckBlobEverywhere:   s.executor.checkBlobEverywhere,
 	}
 	imgID, _, manifestDigest, err := s.builder.Commit(ctx, imageRef, options)
 	if err != nil {
