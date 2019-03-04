@@ -358,6 +358,7 @@ func budCmd(c *cobra.Command, inputArgs []string, iopts budOptions) error {
 		OciDecryptConfig:        decConfig,
 		Jobs:                    &iopts.Jobs,
 		LogRusage:               iopts.LogRusage,
+		CheckBlobEverywhere:     true,
 	}
 	if iopts.IgnoreFile != "" {
 		excludes, err := parseDockerignore(iopts.IgnoreFile)

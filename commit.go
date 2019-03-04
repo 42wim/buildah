@@ -101,17 +101,17 @@ type CommitOptions struct {
 	// integers in the slice represent 0-indexed layer indices, with support for negative
 	// indexing. i.e. 0 is the first layer, -1 is the last (top-most) layer.
 	OciEncryptLayers *[]int
+
+	CheckBlobEverywhere bool
 }
 
-var (
-	// storageAllowedPolicyScopes overrides the policy for local storage
-	// to ensure that we can read images from it.
-	storageAllowedPolicyScopes = signature.PolicyTransportScopes{
-		"": []signature.PolicyRequirement{
-			signature.NewPRInsecureAcceptAnything(),
-		},
-	}
-)
+// storageAllowedPolicyScopes overrides the policy for local storage
+// to ensure that we can read images from it.
+var storageAllowedPolicyScopes = signature.PolicyTransportScopes{
+	"": []signature.PolicyRequirement{
+		signature.NewPRInsecureAcceptAnything(),
+	},
+}
 
 // checkRegistrySourcesAllows checks the $BUILD_REGISTRY_SOURCES environment
 // variable, if it's set.  The contents are expected to be a JSON-encoded
@@ -219,9 +219,9 @@ func (b *Builder) addManifest(ctx context.Context, manifestName string, imageSpe
 // add any additional tags that were specified. Returns the ID of the new image
 // if commit was successful and the image destination was local.
 func (b *Builder) Commit(ctx context.Context, dest types.ImageReference, options CommitOptions) (string, reference.Canonical, digest.Digest, error) {
-	var (
-		imgID string
-	)
+	var imgID string
+
+	options.CheckBlobEverywhere = true
 
 	// If we weren't given a name, build a destination reference using a
 	// temporary name that we'll remove later.  The correct thing to do
@@ -344,8 +344,7 @@ func (b *Builder) Commit(ctx context.Context, dest types.ImageReference, options
 		systemContext.OSChoice = b.OS()
 	}
 
-	systemContext.CheckBlobEverywhere = true
-
+	systemContext.CheckBlobEverywhere = options.CheckBlobEverywhere
 	var manifestBytes []byte
 	if manifestBytes, err = retryCopyImage(ctx, policyContext, maybeCachedDest, maybeCachedSrc, dest, getCopyOptions(b.store, options.ReportWriter, nil, systemContext, "", false, options.SignBy, options.OciEncryptLayers, options.OciEncryptConfig, nil), options.MaxRetries, options.RetryDelay); err != nil {
 		return imgID, nil, "", errors.Wrapf(err, "error copying layers and metadata for container %q", b.ContainerID)
@@ -417,7 +416,6 @@ func (b *Builder) Commit(ctx context.Context, dest types.ImageReference, options
 			return imgID, nil, "", err
 		}
 		logrus.Debugf("added imgID %s to manifestID %s", imgID, manifestID)
-
 	}
 	return imgID, ref, manifestDigest, nil
 }

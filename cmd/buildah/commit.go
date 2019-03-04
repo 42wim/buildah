@@ -190,6 +190,7 @@ func commitCmd(c *cobra.Command, args []string, iopts commitInputOptions) error 
 		SignBy:                iopts.signBy,
 		OciEncryptConfig:      encConfig,
 		OciEncryptLayers:      encLayers,
+		CheckBlobEverywhere:   true,
 	}
 	exclusiveFlags := 0
 	if c.Flag("reference-time").Changed {

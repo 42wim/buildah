@@ -121,6 +121,7 @@ type Executor struct {
 	fromOverride                   string
 	manifest                       string
 	secrets                        map[string]string
+	checkBlobEverywhere            bool
 }
 
 type imageTypeAndHistoryAndDiffIDs struct {
@@ -245,6 +246,7 @@ func NewExecutor(logger *logrus.Logger, store storage.Store, options define.Buil
 		fromOverride:                   options.From,
 		manifest:                       options.Manifest,
 		secrets:                        secrets,
+		checkBlobEverywhere:            options.CheckBlobEverywhere,
 	}
 	if exec.err == nil {
 		exec.err = os.Stderr

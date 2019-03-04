@@ -47,6 +47,7 @@ type BuildOptions = define.BuildOptions
 // URLs), creates a new Executor, and then runs Prepare/Execute/Commit/Delete
 // over the entire set of instructions.
 func BuildDockerfiles(ctx context.Context, store storage.Store, options define.BuildOptions, paths ...string) (string, reference.Canonical, error) {
+	options.CheckBlobEverywhere = true
 	if len(paths) == 0 {
 		return "", nil, errors.Errorf("error building: no dockerfiles specified")
 	}

@@ -221,5 +221,6 @@ type BuildOptions struct {
 	Excludes []string
 	// From is the image name to use to replace the value specified in the first
 	// FROM instruction in the Containerfile
-	From string
+	From                string
+	CheckBlobEverywhere bool
 }
