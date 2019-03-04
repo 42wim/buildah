@@ -301,6 +301,7 @@ func budCmd(c *cobra.Command, inputArgs []string, iopts budResults) error {
 		BlobDirectory:           iopts.BlobCache,
 		Target:                  iopts.Target,
 		TransientMounts:         transientMounts,
+		CheckBlobEverywhere:     true,
 	}
 
 	if iopts.Quiet {
