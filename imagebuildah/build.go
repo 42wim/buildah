@@ -168,6 +168,8 @@ type BuildOptions struct {
 	BlobDirectory string
 	// Target the targeted FROM in the Dockerfile to build
 	Target string
+
+	CheckBlobEverywhere bool
 }
 
 // Executor is a buildah-based implementation of the imagebuilder.Executor
@@ -224,6 +226,7 @@ type Executor struct {
 	imageMap                       map[string]string // Used to map images that we create to handle the AS construct.
 	copyFrom                       string            // Used to keep track of the --from flag from COPY and ADD
 	blobDirectory                  string
+	checkBlobEverywhere            bool
 }
 
 // builtinAllowedBuildArgs is list of built-in allowed build args
@@ -611,6 +614,7 @@ func NewExecutor(store storage.Store, options BuildOptions) (*Executor, error) {
 		removeIntermediateCtrs:         options.RemoveIntermediateCtrs,
 		forceRmIntermediateCtrs:        options.ForceRmIntermediateCtrs,
 		blobDirectory:                  options.BlobDirectory,
+		checkBlobEverywhere:            options.CheckBlobEverywhere,
 	}
 	if exec.err == nil {
 		exec.err = os.Stderr
@@ -1231,6 +1235,7 @@ func (b *Executor) Commit(ctx context.Context, ib *imagebuilder.Builder, created
 		Squash:                b.squash,
 		BlobDirectory:         b.blobDirectory,
 		Parent:                b.builder.FromImageID,
+		CheckBlobEverywhere:   b.checkBlobEverywhere,
 	}
 	imgID, ref, _, err := b.builder.Commit(ctx, imageRef, options)
 	if err != nil {

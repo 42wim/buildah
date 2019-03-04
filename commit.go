@@ -71,6 +71,8 @@ type CommitOptions struct {
 	// OmitTimestamp forces epoch 0 as created timestamp to allow for
 	// deterministic, content-addressable builds.
 	OmitTimestamp bool
+
+	CheckBlobEverywhere bool
 }
 
 // PushOptions can be used to alter how an image is copied somewhere.
@@ -105,6 +107,8 @@ type PushOptions struct {
 	// the user will be displayed, this is best used for logging.
 	// The default is false.
 	Quiet bool
+
+	CheckBlobEverywhere bool
 }
 
 // Commit writes the contents of the container, along with its updated
@@ -148,7 +152,7 @@ func (b *Builder) Commit(ctx context.Context, dest types.ImageReference, options
 			}
 		}
 	}
-	src, err := b.makeImageRef(options.PreferredManifestType, options.Parent, exportBaseLayers, options.Squash, options.BlobDirectory, options.Compression, options.HistoryTimestamp, options.OmitTimestamp)
+	src, err := b.makeImageRef(options.PreferredManifestType, options.Parent, exportBaseLayers, options.Squash, options.BlobDirectory, options.Compression, options.HistoryTimestamp, options.OmitTimestamp, options.CheckBlobEverywhere)
 	if err != nil {
 		return imgID, nil, "", errors.Wrapf(err, "error computing layer digests and building metadata for container %q", b.ContainerID)
 	}
@@ -177,7 +181,7 @@ func (b *Builder) Commit(ctx context.Context, dest types.ImageReference, options
 	case archive.Gzip:
 		systemContext.DirForceCompress = true
 	}
-	systemContext.CheckBlobEverywhere = true
+	systemContext.CheckBlobEverywhere = options.CheckBlobEverywhere
 	var manifestBytes []byte
 	if manifestBytes, err = cp.Image(ctx, policyContext, maybeCachedDest, maybeCachedSrc, getCopyOptions(options.ReportWriter, maybeCachedSrc, nil, maybeCachedDest, systemContext, "")); err != nil {
 		return imgID, nil, "", errors.Wrapf(err, "error copying layers and metadata for container %q", b.ContainerID)
@@ -276,6 +280,7 @@ func Push(ctx context.Context, image string, dest types.ImageReference, options 
 	case archive.Gzip:
 		systemContext.DirForceCompress = true
 	}
+	systemContext.CheckBlobEverywhere = options.CheckBlobEverywhere
 	var manifestBytes []byte
 	if manifestBytes, err = cp.Image(ctx, policyContext, dest, maybeCachedSrc, getCopyOptions(options.ReportWriter, maybeCachedSrc, nil, dest, systemContext, options.ManifestType)); err != nil {
 		return nil, "", errors.Wrapf(err, "error copying layers and metadata from %q to %q", transports.ImageName(maybeCachedSrc), transports.ImageName(dest))

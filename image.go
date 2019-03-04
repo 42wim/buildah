@@ -60,6 +60,7 @@ type containerImageRef struct {
 	blobDirectory         string
 	preEmptyLayers        []v1.History
 	postEmptyLayers       []v1.History
+	checkBlobEverywhere   bool
 }
 
 type containerImageSource struct {
@@ -635,7 +636,7 @@ func (i *containerImageSource) GetBlob(ctx context.Context, blob types.BlobInfo,
 	return ioutils.NewReadCloserWrapper(layerFile, closer), size, nil
 }
 
-func (b *Builder) makeImageRef(manifestType, parent string, exporting bool, squash bool, blobDirectory string, compress archive.Compression, historyTimestamp *time.Time, omitTimestamp bool) (types.ImageReference, error) {
+func (b *Builder) makeImageRef(manifestType, parent string, exporting bool, squash bool, blobDirectory string, compress archive.Compression, historyTimestamp *time.Time, omitTimestamp bool, checkBlobEverywhere bool) (types.ImageReference, error) {
 	var name reference.Named
 	container, err := b.store.Container(b.ContainerID)
 	if err != nil {
@@ -688,6 +689,7 @@ func (b *Builder) makeImageRef(manifestType, parent string, exporting bool, squa
 		blobDirectory:         blobDirectory,
 		preEmptyLayers:        b.PrependedEmptyLayers,
 		postEmptyLayers:       b.AppendedEmptyLayers,
+		checkBlobEverywhere:   checkBlobEverywhere,
 	}
 	return ref, nil
 }
