@@ -160,6 +160,8 @@ type BuildOptions struct {
 	Target string
 	// Devices are the additional devices to add to the containers
 	Devices []configs.Device
+
+	CheckBlobEverywhere bool
 }
 
 // BuildDockerfiles parses a set of one or more Dockerfiles (which may be

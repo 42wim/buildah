@@ -81,6 +81,8 @@ type CommitOptions struct {
 	// OmitTimestamp forces epoch 0 as created timestamp to allow for
 	// deterministic, content-addressable builds.
 	OmitTimestamp bool
+
+	CheckBlobEverywhere bool
 }
 
 // PushOptions can be used to alter how an image is copied somewhere.
@@ -115,6 +117,8 @@ type PushOptions struct {
 	// the user will be displayed, this is best used for logging.
 	// The default is false.
 	Quiet bool
+
+	CheckBlobEverywhere bool
 }
 
 var (
@@ -293,7 +297,7 @@ func (b *Builder) Commit(ctx context.Context, dest types.ImageReference, options
 	case archive.Gzip:
 		systemContext.DirForceCompress = true
 	}
-	systemContext.CheckBlobEverywhere = true
+	systemContext.CheckBlobEverywhere = options.CheckBlobEverywhere
 	var manifestBytes []byte
 	if manifestBytes, err = cp.Image(ctx, policyContext, maybeCachedDest, maybeCachedSrc, getCopyOptions(b.store, options.ReportWriter, nil, systemContext, "")); err != nil {
 		return imgID, nil, "", errors.Wrapf(err, "error copying layers and metadata for container %q", b.ContainerID)
@@ -426,6 +430,7 @@ func Push(ctx context.Context, image string, dest types.ImageReference, options 
 	case archive.Gzip:
 		systemContext.DirForceCompress = true
 	}
+	systemContext.CheckBlobEverywhere = options.CheckBlobEverywhere
 	var manifestBytes []byte
 	if manifestBytes, err = cp.Image(ctx, policyContext, dest, maybeCachedSrc, getCopyOptions(options.Store, options.ReportWriter, nil, systemContext, options.ManifestType)); err != nil {
 		return nil, "", errors.Wrapf(err, "error copying layers and metadata from %q to %q", transports.ImageName(maybeCachedSrc), transports.ImageName(dest))

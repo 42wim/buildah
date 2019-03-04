@@ -94,6 +94,7 @@ type Executor struct {
 	addCapabilities                []string
 	dropCapabilities               []string
 	devices                        []configs.Device
+	checkBlobEverywhere            bool
 }
 
 // NewExecutor creates a new instance of the imagebuilder.Executor interface.
@@ -151,6 +152,7 @@ func NewExecutor(store storage.Store, options BuildOptions, mainNode *parser.Nod
 		addCapabilities:                options.AddCapabilities,
 		dropCapabilities:               options.DropCapabilities,
 		devices:                        options.Devices,
+		checkBlobEverywhere:            options.CheckBlobEverywhere,
 	}
 	if exec.err == nil {
 		exec.err = os.Stderr
