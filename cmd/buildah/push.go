@@ -161,6 +161,7 @@ func pushCmd(c *cobra.Command, args []string, iopts pushResults) error {
 		Store:               store,
 		SystemContext:       systemContext,
 		BlobDirectory:       iopts.blobCache,
+		CheckBlobEverywhere: true,
 	}
 	if !iopts.quiet {
 		options.ReportWriter = os.Stderr
