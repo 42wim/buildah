@@ -70,7 +70,8 @@ type PushOptions struct {
 	// If non-nil and len==0, denotes encrypt all layers.
 	// integers in the slice represent 0-indexed layer indices, with support for negative
 	// indexing. i.e. 0 is the first layer, -1 is the last (top-most) layer.
-	OciEncryptLayers *[]int
+	OciEncryptLayers    *[]int
+	CheckBlobEverywhere bool
 }
 
 // Push copies the contents of the image to a new location.
